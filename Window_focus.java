@@ -14,7 +14,7 @@ The composite image genrated by the plugin is improved by the
 refined method according to (Goldsmith, 2000) and available at
 http://www.general.monash.edu.au/ss/pdf/vol19no3/Goldsmith_03.pdf
 */
-public class Depth_From_Focus implements PlugIn {
+public class Window_focus implements PlugIn {
 
     public void run(String arg) {
 
@@ -94,10 +94,10 @@ public class Depth_From_Focus implements PlugIn {
                         for (int u = -uc; u <= uc; u++) {
                         //change sharpness algorithm
                         //use window std instead of mask
-                            sum += Math.pow(pixels2[offset + u] - pixels2[x + y * width]);
+                            sum += (float)Math.pow((pixels2[offset + u] - pixels2[x + y * width]),2);
                         }
                     }
-                    sum = sum / Math.pow(pixels2[x + y*width])
+                    sum = sum / (float)Math.pow((pixels2[x + y*width]),2);
                     if (sharpness[x + y * width] < sum) {
                         sharpness[x + y * width] = sum;
                         depthimage[x + y * width] = (float) (s * distance);
