@@ -5,7 +5,7 @@ import ij.process.*;
 import ij.gui.*;
 
 /**
-This plugin implement the Ryall sharpness index with array 
+This plugin implement the Ryall sharpness index with array
 dimensions input from 3 to any odd values to set by user. The
 elevation map is also included if the microscopy stage displacement
 is avaliable. This version doesn't weight the effect of the corner
@@ -61,14 +61,16 @@ public class Window_focus implements PlugIn {
 
         float sharpness[] = new float[width * height];
         float depthimage[] = new float[width * height];
-        float[] pixels = new float[width * height];
 
-        float[] pixels2 = new float[width * height];
         int nSlices = imp.getStackSize();
+        float[] pixels = new float[width * height]; // this the output image
+        float[][] pixels2 = new float[width * height][nSlices+1];
         ImageStack stack = imp.getStack();
 
         IJ.resetEscape();
         IJ.showStatus("Building the elevation and composite images...");
+
+        int[] indexmap = new int[width * height];
         for (int s = 1; s <= nSlices; s++) {
             IJ.showProgress(s, nSlices);
             if (IJ.escapePressed()) break;
@@ -81,31 +83,39 @@ public class Window_focus implements PlugIn {
                 for (int x = 0; x < width; x++) {
                     i = offset + x;
                     //int pix = 0xff & pixels1[i]; //
-                    pixels2[ii] = pixels1[i];//pix;(byte)
+                    pixels2[ii][s] = pixels1[i];//pix;(byte)
                     ii++;
                 }
             }
-			//find sharpness index by mask/std
+			//find sharpness index by std
             for (int y = vc; y < height - vc; y++) {
                 for (int x = uc; x < width - uc; x++) {
                     float sum = 0;
-                    for (int v = -vc; v <= vc; v++) {
+                    for (int v = -vc; v < vc+1; v++) {
                         offset = x + (y + v) * width;
                         for (int u = -uc; u <= uc; u++) {
                         //change sharpness algorithm
                         //use window std instead of mask
-                            sum += (float)Math.pow((pixels2[offset + u] - pixels2[x + y * width]),2);
+                            sum += (float)Math.pow((pixels2[offset + u][s] - pixels2[x + y * width][s]),2);
                         }
                     }
-                    sum = sum / (float)Math.pow((pixels2[x + y*width]),2);
+                    sum = sum / (float)Math.pow((pixels2[x + y*width][s]),2);
                     if (sharpness[x + y * width] < sum) {
                         sharpness[x + y * width] = sum;
                         depthimage[x + y * width] = (float) (s * distance);
-                        pixels[x + y * width] = (float) pixels2[x + y * width];
+                       // pixels[x + y * width] = (float) pixels2[x + y * width];
+                        indexmap[x + y * width]= (int)((indexmap[x + y * width -1] * sharpness[x + y * width -1] + s * sum)/ (sharpness[x + y * width -1] + sum));
                     }
                 }
             }
 
+        }
+
+        for (int y = vc; y < height - vc; y++) {
+            for (int x = uc; x < width - uc; x++) {
+            	int idx = indexmap[x + y * width];
+            	pixels[x + y * width] = (float) pixels2[x + y * width][idx];
+            }
         }
 
         ImageProcessor ip2 = new FloatProcessor(width, height, pixels, null);
@@ -115,6 +125,7 @@ public class Window_focus implements PlugIn {
         ImagePlus imp3 = imp.createImagePlus();
         imp3.setProcessor("Depth Image", ip3);
         ImagePlus[] output = new ImagePlus[2];
+
         output[0] = imp2;
         output[1] = imp3;
         return output;
