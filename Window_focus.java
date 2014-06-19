@@ -37,20 +37,20 @@ public class Window_focus implements PlugIn {
         if (gd.wasCanceled()) return;
         distance = gd.getNextNumber()/cal.pixelWidth;
         int dimension = (int) gd.getNextNumber();
+        //set mask size as half of dimension(kernel size in dialog)
         int uc = dimension / 2;
         if (dimension != (2 * uc + 1) || dimension < 3) {
             IJ.error("Depth From Focus", "Invalid Dimension!\n"
                  + "Enter odd numbers equal or greater than 3");
             return;
         }
-        int vc = uc;
+        int vc = uc;//this is mask size
         long startTime = System.currentTimeMillis();
         ImagePlus[] output = sharpnessIndex(imp, distance, uc, vc);
         long time = System.currentTimeMillis() - startTime;
         double seconds = time / 1000.0;
         output[0].show();
         output[1].show("Reconstruction Time: " + IJ.d2s(seconds) + " seconds");
-
     }
 
     public ImagePlus[] sharpnessIndex(ImagePlus imp, double distance, int uc, int vc) {
@@ -74,7 +74,7 @@ public class Window_focus implements PlugIn {
             if (IJ.escapePressed()) break;
             ImageProcessor ip = stack.getProcessor(s).convertToFloat();
             float[] pixels1 = (float[]) (ip.getPixels());
-
+			//convert image to an array, re-arrange the index
             ii = 0;
             for (int y = 0; y < height; y++) {
                 offset = y * width;
@@ -85,7 +85,7 @@ public class Window_focus implements PlugIn {
                     ii++;
                 }
             }
-
+			//find sharpness index by mask/std
             for (int y = vc; y < height - vc; y++) {
                 for (int x = uc; x < width - uc; x++) {
                     float sum = 0;
