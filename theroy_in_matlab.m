@@ -31,6 +31,15 @@ for i = 1:256
         end
     end
 end
-[Image_std,Image_index] = max(std_matrix,[],3);
+%% find the max std
+% [Image_std,Image_index] = max(std_matrix,[],3);
+%% find the smoothed index
+[old_std, old_sharpest] = max(std_matrix(1,1,:),[],3);
+for i = 1:256
+    for j = 1:256
+        [new_std, new_sharpest] = max(std_matrix(i,j,:),[],3);
+        Image_index(i,j) = round((old_std*old_sharpest + new_std*new_sharpest)/(old_std + new_std));
+    end
+end
 Image = matrix_3dm(reshape([1:256*256],[256,256])+256*256*(Image_index-1));
 figure,imshow(uint8(Image))
