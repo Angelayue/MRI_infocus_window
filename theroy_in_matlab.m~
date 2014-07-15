@@ -68,7 +68,7 @@ matrix_4dm(:,:,1,9) = (im2147);
 matrix_4dm(:,:,2,9) = (im2148);
 matrix_4dm(:,:,3,9) = (im2149);
 %% 4d cube picking up
-std_matrix_4d = zeros(256, 256, 9);
+std_matrix_4d = zeros(256, 256, 3, 9);
 Image_index_4d = ones(256, 256);
 Image_std_4d = zeros(256, 256);
 for i = 1: 256
