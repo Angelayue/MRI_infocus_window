@@ -1,5 +1,4 @@
 clear;
-%% TODO: make it 4d! change to 3d cube picking up 
 %% load images
 %read mag img
 im99=imread('mag_freq1_imag99.jpg');
@@ -93,7 +92,7 @@ end
 [Image_std_4d,Image_index_4d] = max(std_matrix_4d,[],3);
 %% find the max std for 3d
 % [Image_std_3d,Image_index_3d] = max(std_matrix_3d,[],3);
-%% find the smoothed index
+%% find the smoothed index for 3d
 % [old_std, old_sharpest] = max(std_matrix_3d(1,1,:),[],3);
 % for i = 1:256
 %     for j = 1:256
@@ -103,5 +102,13 @@ end
 % end
 % Image_3d = matrix_3dm(reshape([1:256*256],[256,256])+256*256*(Image_index_3d-1));
 % figure,imshow(uint8(Image_3d))
+%% find the smoothed index for 4d
+[old_std, old_sharpest] = max(std_matrix_4d(1,1,:),[],3);
+for i = 1:256
+    for j = 1:256
+        [new_std, new_sharpest] = max(std_matrix_4d(i,j,:),[],3);
+        Image_index_4d(i,j) = round((old_std*old_sharpest + new_std*new_sharpest)/(old_std + new_std));
+    end
+end
 Image_4d = matrix_4dm(reshape([1:256*256],[256,256])+256*256*(Image_index_4d-1));
 figure, imshow(uint8(Image_4d))
